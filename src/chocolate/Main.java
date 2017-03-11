@@ -1,11 +1,14 @@
 package chocolate;
 
+import org.tbot.bot.TBot;
 import org.tbot.internal.AbstractScript;
 import org.tbot.internal.Manifest;
 import org.tbot.internal.ScriptCategory;
 import org.tbot.internal.handlers.LogHandler;
+import org.tbot.internal.handlers.ScriptHandler;
 import org.tbot.methods.*;
 import org.tbot.methods.tabs.Inventory;
+import org.tbot.wrappers.Item;
 
 /**
  * Created by Til Anheier on 10.03.2017.
@@ -41,11 +44,9 @@ public class Main extends AbstractScript {
     public int loop() {
         switch (getState()) {
             case GRIND:
-                if (Players.getLocal().getAnimation() == -1) {
-                    if (Inventory.getInSlot(knifeID).click()) {
-                        Inventory.getInSlot(chocolateID).click();
-                        sleep(600, 800);
-                    }
+                if (Inventory.getFirst(knifeID).click()) {
+                    Inventory.getFirst(chocolateID).click();
+                    sleep(200, 400);
                 }
                 break;
             case BANK:
@@ -57,7 +58,10 @@ public class Main extends AbstractScript {
 
                         if (Bank.contains(chocolateID)) {
                             Bank.withdrawAll(chocolateID);
+                        } else {
+                            LogHandler.log("D`oh! No chocolate bars available.");
                         }
+                        Bank.close();
                     } else {
                         Bank.withdraw(knifeID, 1);
                     }
