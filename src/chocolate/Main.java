@@ -1,5 +1,6 @@
 package chocolate;
 
+import org.tbot.bot.Account;
 import org.tbot.internal.AbstractScript;
 import org.tbot.internal.Manifest;
 import org.tbot.internal.ScriptCategory;
@@ -35,14 +36,12 @@ public class Main extends AbstractScript implements PaintListener {
     private long startTime = 0;
     private int chocolatePrice = 0;
     private int chocolateDustPrice = 0;
-    private int profit = 0;
 
     @Override
     public boolean onStart() {
         startTime = System.currentTimeMillis();
         chocolatePrice = PriceLookup.getPrice(chocolateID);
         chocolateDustPrice = PriceLookup.getPrice(chocolateDustID);
-        profit = chocolateDustPrice - chocolatePrice;
 
         LogHandler.log("Script started.");
         return true;
@@ -81,6 +80,7 @@ public class Main extends AbstractScript implements PaintListener {
                             Bank.withdrawAll(chocolateID);
                         } else {
                             LogHandler.log("D`oh! No chocolate bars available.");
+                            return -1;
                         }
 
                         Time.sleep(600, 800);
@@ -139,7 +139,8 @@ public class Main extends AbstractScript implements PaintListener {
         int chocolateHour = (int) ((getDusts()) * 3600000D / (System.currentTimeMillis() - startTime));
 
         // Gold in der Stunde
-        int profitHour = (int) ((chocolatePrice) * 3600000D / (System.currentTimeMillis() - startTime));
+        int profit = chocolateDustPrice - chocolatePrice;
+        int profitHour = (int) ((profit) * 3600000D / (System.currentTimeMillis() - startTime));
 
         Graphics2D g = (Graphics2D) g1;
         g.setColor(greenColor);
@@ -154,7 +155,7 @@ public class Main extends AbstractScript implements PaintListener {
         g.drawString("Chocolate: " + getDusts(), 14, 88);
         g.drawString("Chocolate/HR: " + chocolateHour, 14, 106);
         g.drawString("Profit: " + getDusts() * profit, 14, 124);
-        g.drawString("Profit/HR: " + profitHour, 14, 142);
+        g.drawString("Profit/HR: " + getDusts() * profitHour, 14, 142);
         g.setFont(basicFont);
         g.drawString("Chocolate Grinder", 15, 27);
     }
