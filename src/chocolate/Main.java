@@ -12,6 +12,7 @@ import org.tbot.internal.handlers.LogHandler;
 import org.tbot.internal.handlers.ScriptHandler;
 import org.tbot.methods.*;
 import org.tbot.methods.ge.GrandExchange;
+import org.tbot.methods.io.PriceLookup;
 import org.tbot.methods.tabs.Inventory;
 import org.tbot.wrappers.Item;
 
@@ -52,9 +53,9 @@ public class Main extends AbstractScript implements PaintListener {
     @Override
     public boolean onStart() {
         startTime = System.currentTimeMillis();
-        //chocolatePrice = getGrandExchangePrice(chocolateID);
-        //chocolateDustPrice = GrandExchange.getOffer(chocolateDustID).getUnitPrice();
-        //profit = chocolateDustPrice - chocolatePrice;
+        chocolatePrice = PriceLookup.getPrice(chocolateID);
+        chocolateDustPrice = PriceLookup.getPrice(chocolateDustID);
+        profit = chocolateDustPrice - chocolatePrice;
 
         LogHandler.log("Script started.");
         return true;
@@ -122,29 +123,6 @@ public class Main extends AbstractScript implements PaintListener {
     @Override
     public void onFinish() {
         LogHandler.log("Script finished.");
-    }
-
-    private int getGrandExchangePrice(int itemID) {
-        int price = 0;
-        try {
-            // https://www.reddit.com/r/2007scape/comments/3g06rq/guide_using_the_old_school_ge_page_api/
-            // Fetch URL by the API
-            URL url = new URL("http://services.runescape.com/m=itemdb_oldschool/api/catalogue/detail.json?item=" + itemID);
-            URLConnection connection = url.openConnection();
-
-            InputStream input = connection.getInputStream();
-            BufferedReader reader = new BufferedReader(new InputStreamReader(input));
-            String content = reader.lines().findFirst().get();
-
-            // Parse to JSON Object
-            JSONObject json = new JSONObject(content);
-
-            // Fetch price
-            price = json.getJSONObject("item").getJSONObject("current").getInt("price");
-        } catch (Exception e) {
-            LogHandler.log(e.getMessage());
-        }
-        return price;
     }
 
     private int getDusts()  {
