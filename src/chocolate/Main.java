@@ -1,28 +1,15 @@
 package chocolate;
 
-import jdk.nashorn.internal.parser.JSONParser;
-import jdk.nashorn.internal.runtime.JSONFunctions;
-import org.json.JSONObject;
-import org.tbot.bot.TBot;
 import org.tbot.internal.AbstractScript;
 import org.tbot.internal.Manifest;
 import org.tbot.internal.ScriptCategory;
 import org.tbot.internal.event.listeners.PaintListener;
 import org.tbot.internal.handlers.LogHandler;
-import org.tbot.internal.handlers.ScriptHandler;
 import org.tbot.methods.*;
-import org.tbot.methods.ge.GrandExchange;
 import org.tbot.methods.io.PriceLookup;
 import org.tbot.methods.tabs.Inventory;
-import org.tbot.wrappers.Item;
 
 import java.awt.*;
-import java.io.BufferedReader;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.URL;
-import java.net.URLConnection;
-import java.util.concurrent.locks.Condition;
 
 /**
  * Created by Til Anheier on 10.03.2017.
