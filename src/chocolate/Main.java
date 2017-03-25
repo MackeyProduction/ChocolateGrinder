@@ -1,9 +1,10 @@
 package chocolate;
 
-import org.tbot.bot.Account;
+import org.tbot.bot.TBot;
 import org.tbot.internal.AbstractScript;
 import org.tbot.internal.Manifest;
 import org.tbot.internal.ScriptCategory;
+import org.tbot.internal.ScriptController;
 import org.tbot.internal.event.listeners.PaintListener;
 import org.tbot.internal.handlers.LogHandler;
 import org.tbot.methods.*;
@@ -39,9 +40,17 @@ public class Main extends AbstractScript implements PaintListener {
 
     @Override
     public boolean onStart() {
+        // set buy and sell item
+        RandomHandler handler = new RandomHandler();
+        GrandExchangeItem item = new GrandExchangeItem();
+        item.setBuyItem(chocolateID);
+        item.setSellItem(chocolateDustID);
+
+        TBot.getBot().getScriptHandler().getRandomHandler().registerRandom(new GEScript(item));
         startTime = System.currentTimeMillis();
-        chocolatePrice = PriceLookup.getPrice(chocolateID);
-        chocolateDustPrice = PriceLookup.getPrice(chocolateDustID);
+        // Pricecheck dauert zu lange
+        //chocolatePrice = PriceLookup.getPrice(chocolateID);
+        //chocolateDustPrice = PriceLookup.getPrice(chocolateDustID);
 
         LogHandler.log("Script started.");
         return true;
@@ -80,7 +89,6 @@ public class Main extends AbstractScript implements PaintListener {
                             Bank.withdrawAll(chocolateID);
                         } else {
                             LogHandler.log("D`oh! No chocolate bars available.");
-                            return -1;
                         }
 
                         Time.sleep(600, 800);
@@ -90,7 +98,7 @@ public class Main extends AbstractScript implements PaintListener {
                     }
                 } else {
                     Bank.open();
-                    Time.sleep(600, 800);
+                    Time.sleep(1200, 1800);
                 }
                 break;
             case ANTIBAN:
