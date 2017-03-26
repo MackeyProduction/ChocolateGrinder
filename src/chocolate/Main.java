@@ -22,6 +22,8 @@ public class Main extends AbstractScript implements PaintListener {
     private int chocolateDustID = 1975;
     private int knifeID = 946;
     private int chocolate = 0;
+    private int chocolatePrice = 0;
+    private int chocolateDustPrice = 0;
     private boolean count = false;
 
     // Paint
@@ -35,8 +37,6 @@ public class Main extends AbstractScript implements PaintListener {
     private final Font basicFont = new Font("Arial", 1, 11);
 
     private long startTime = 0;
-    private int chocolatePrice = 0;
-    private int chocolateDustPrice = 0;
 
     @Override
     public boolean onStart() {
@@ -47,6 +47,7 @@ public class Main extends AbstractScript implements PaintListener {
         item.setSellItem(chocolateDustID);
 
         TBot.getBot().getScriptHandler().getRandomHandler().registerRandom(new GEScript(item));
+        //TBot.getBot().getScriptHandler().getRandomHandler().registerRandom(new Trader());
         startTime = System.currentTimeMillis();
         // Pricecheck dauert zu lange
         //chocolatePrice = PriceLookup.getPrice(chocolateID);

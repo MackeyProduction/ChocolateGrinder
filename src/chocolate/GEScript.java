@@ -1,12 +1,20 @@
 package chocolate;
 
+import org.tbot.client.ItemStorage;
+import org.tbot.client.Node;
+import org.tbot.client.reflection.wrappers.ItemStorageWrapper;
 import org.tbot.internal.*;
 import org.tbot.internal.event.listeners.PaintListener;
 import org.tbot.internal.handlers.LogHandler;
-import org.tbot.methods.Bank;
-import org.tbot.methods.Time;
+import org.tbot.methods.*;
 import org.tbot.methods.ge.GrandExchange;
 import org.tbot.methods.tabs.Inventory;
+import org.tbot.util.Condition;
+import org.tbot.util.Filter;
+import org.tbot.wrappers.GrandExchangeOffer;
+import org.tbot.wrappers.Item;
+import org.tbot.wrappers.WidgetChild;
+import org.tbot.wrappers.def.ItemDef;
 
 import java.awt.*;
 
@@ -29,7 +37,12 @@ public class GEScript extends AbstractRandom implements PaintListener {
     }
 
     public String getText() {
-        return "GEScript";
+        return "Handling Grand Exchange...";
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
     }
 
     @Override
@@ -38,47 +51,44 @@ public class GEScript extends AbstractRandom implements PaintListener {
     }
 
     private enum State {
-        BUY, SELL, BANK, ANTIBAN
+        GRANDEXCHANGE, BANK, ANTIBAN
     }
 
     private State getState() {
-        if (!Inventory.contains(item.getBuyItem()) && !Inventory.contains(coins)) {
+        if (!Inventory.contains(item.getBuyItem()) && !Inventory.contains(coins) && !GrandExchange.isOpen()) {
             return State.BANK;
         }
 
-        if (!Inventory.contains(item.getBuyItem()) && Inventory.contains(coins)) {
-            return State.BUY;
+        if ((!Inventory.contains(item.getBuyItem()) && Inventory.contains(coins)) || (Inventory.contains(item.getBuyItem()))) {
+            return State.GRANDEXCHANGE;
         }
-
         return State.ANTIBAN;
     }
 
     @Override
     public int loop() {
         switch (getState()) {
-            case BUY:
+            case GRANDEXCHANGE:
                 if (GrandExchange.isOpen()) {
                     if (GrandExchange.hasFreeSlots()) {
-                        if (item.getBuyItemSellPrice() == 0) {
-                            int slot = GrandExchange.getRandomFreeSlot();
-                            GrandExchange.placeBuyOfferPercentage(item.getBuyItem(), 1, 115, slot);
-                            Time.sleep(1600, 1800);
+                        log("Grand Exchange...");
 
-                            // offer completed?
-                            if (GrandExchange.getOffer(slot).isCompleted()) {
-                                int sellPrice = GrandExchange.getOffer(slot).getUnitPrice();
-                                item.setBuyItemSellPrice(sellPrice);
-                                GrandExchange.collectAll();
+                        if (item.getBuyItemSellPrice() == 0) {
+                            int sellPrice = priceFromOffer(item.getBuyItem(), "buy");
+                            item.setBuyItemSellPrice(sellPrice);
+                        }
+
+                        if (item.getBuyItemBuyPrice() == 0) {
+                            if (Inventory.contains(item.getBuyItem())) {
+                                int buyPrice = priceFromOffer(item.getBuyItem(), "sell");
+                                item.setBuyItemBuyPrice(buyPrice);
                             }
-                            Time.sleep(600, 800);
                         }
                     }
                 } else {
                     GrandExchange.openMainScreen();
                     Time.sleep(1200, 1800);
                 }
-                break;
-            case SELL:
                 break;
             case BANK:
                 if (Bank.isOpen()) {
@@ -98,6 +108,14 @@ public class GEScript extends AbstractRandom implements PaintListener {
                 }
                 break;
             case ANTIBAN:
+                switch (Random.nextInt(60)) {
+                    case 20:
+                        Camera.setAngle(Random.nextInt(180));
+                        break;
+                    case 40:
+                        Mouse.move(0, 0);
+                        break;
+                }
                 break;
         }
         return 100;
@@ -108,11 +126,67 @@ public class GEScript extends AbstractRandom implements PaintListener {
         LogHandler.log("Random Event finished.");
     }
 
+    private void openOffer(GrandExchangeOffer offer) {
+        int slot = offer.getSlot();
+        int widgetParent = 465;
+        int widgetChild = 7;
+
+        WidgetChild slotWidget = Widgets.getWidget(widgetParent, widgetChild + slot).getChild(2);
+
+        if (Mouse.click(slotWidget.getRandomPoint(), true)) {
+            Time.sleepUntil(new Condition() {
+                @Override
+                public boolean check() {
+                    return !slotWidget.isVisible();
+                }
+            }, Random.nextInt(600, 800));
+        }
+    }
+
+    private int priceFromOffer(int id, String state) {
+        int price = 0;
+
+        if (GrandExchange.getOffer(id) != null) {
+            // offer completed?
+            if (GrandExchange.getOffer(id).isCompleted()) {
+                log("Completing...");
+
+                if (GrandExchange.isCollectScreenOpen()) {
+                    price = GrandExchange.getOffer(id).getCoinsTransferred();
+                    GrandExchange.collectAll();
+                    log("Price: " + price);
+                } else {
+                    log("Opening offer...");
+
+                    // Open offer
+                    openOffer(GrandExchange.getOffer(id));
+                }
+            }
+        } else {
+            switch (state) {
+                case "buy":
+                    log("Buying...");
+                    if (!GrandExchange.placeBuyOfferPercentage(id, 1, 125, GrandExchange.getRandomFreeSlot())) {
+                        Time.sleep(1200, 1800);
+                    }
+                    break;
+                case "sell":
+                    log("Selling...");
+                    if (!GrandExchange.placeSellOfferPercentage(Inventory.getFirst(id), 1, 75)) {
+                        Time.sleep(1200, 1800);
+                    }
+                    break;
+            }
+        }
+        return price;
+    }
+
     @Override
     public void onRepaint(Graphics g1) {
-        Graphics2D g = (Graphics2D) g1;
-        g.setColor(redColor);
-        g.setFont(basicFont);
-        g.drawString("Random Event: GEScript", 10, 332);
+        super.onRepaint(g1);
+//        Graphics2D g = (Graphics2D) g1;
+//        g.setColor(redColor);
+//        g.setFont(basicFont);
+//        g.drawString("Random Event: GEScript", 10, 332);
     }
 }
